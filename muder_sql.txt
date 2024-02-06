@@ -1,0 +1,110 @@
+/*SELECT *
+FROM crime_scene_report
+WHERE date=20180115 and type='murder' and city='SQL City';*/
+
+/*
+SELECT 
+*
+FROM
+person
+WHERE address_street_name = 'Franklin Ave' AND name LIKE 'Annabel %'
+;
+-- 16371
+
+
+SELECT 
+*
+FROM
+person
+WHERE address_street_name = 'Northwestern Dr'
+ORDER BY address_number DESC
+LIMIT 1 
+;
+--14887
+
+SELECT 
+*
+FROM interview
+WHERE person_id in (14887,16371)
+*/
+/*
+WITH max_address AS
+(SELECT
+MAX(address_number)
+FROM
+person
+WHERE address_street_name = 'Northwestern Dr'),
+witness_ids AS
+(SELECT 
+*
+FROM
+person
+WHERE (address_street_name = 'Northwestern Dr' AND address_number=(SELECT * FROM max_address)
+) OR ( address_street_name = 'Franklin Ave' AND name LIKE 'Annabel %'))
+
+SELECT * FROM interview where person_id in (SELECT id FROM witness_ids)	  
+;*/
+
+/* Morty info
+SELECT * 
+FROM get_fit_now_member
+JOIN person ON get_fit_now_member.person_id = person.id
+JOIN drivers_license ON drivers_license.id = person.license_id
+WHERE get_fit_now_member.id LIKE '48Z%' 
+	AND membership_status='gold' AND plate_number LIKE '%H42%';*/
+/* Annabels info	
+with annabel_time as
+(SELECT check_in_time,check_out_time
+FROM get_fit_now_member 
+JOIN get_fit_now_check_in ON get_fit_now_check_in.membership_id= get_fit_now_member.id
+WHERE check_in_date = 20180109 AND name Like '%Annabel%')
+
+SELECT *
+FROM get_fit_now_member 
+JOIN get_fit_now_check_in ON get_fit_now_check_in.membership_id= get_fit_now_member.id
+WHERE check_in_date = 20180109 and 
+check_out_time between(select check_in_time FROM annabel_time) and (select check_out_time FROM annabel_time)
+and name!='Annabel Miller'
+;*/
+/* All the witness info in one query
+with annabel_time as
+(SELECT check_in_time,check_out_time
+FROM get_fit_now_member 
+JOIN get_fit_now_check_in ON get_fit_now_check_in.membership_id= get_fit_now_member.id
+WHERE check_in_date = 20180109 AND name Like '%Annabel%')
+
+SELECT *
+FROM get_fit_now_member 
+JOIN get_fit_now_check_in ON get_fit_now_check_in.membership_id= get_fit_now_member.id
+JOIN person ON get_fit_now_member.person_id = person.id
+JOIN drivers_license ON drivers_license.id = person.license_id
+WHERE check_in_date = 20180109 and 
+check_out_time between(select check_in_time FROM annabel_time) and (select check_out_time FROM annabel_time)
+and get_fit_now_member.name!='Annabel Miller'
+and get_fit_now_member.id LIKE '48Z%' 
+	AND membership_status='gold' AND plate_number LIKE '%H42%'
+;*/
+/*              
+SELECT 
+transcript
+FROM 
+interview
+join person ON person.id=interview.person_id
+WHERE person.name = 'Jeremy Bowers';
+*/
+/*I was hired by a woman with a lot of money.
+I don't know her name but I know she's around 5'5" (65") or 5'7" (67").
+She has red hair and she drives a Tesla Model S.
+I know that she attended the SQL Symphony Concert 3 times in December 2017.*/
+SELECT 
+name,
+COUNT(*)
+FROM drivers_license
+JOIN person ON person.license_id=drivers_license.id
+JOIN facebook_event_checkin ON facebook_event_checkin.person_id=person.id
+WHERE hair_color='red' and height between 65 and 67
+	AND car_make='Tesla' AND car_model='Model S'
+	AND gender='female'
+	AND event_name='SQL Symphony Concert' and date LIKE '201712%'
+GROUP BY name 
+HAVING COUNT(*)=3;
